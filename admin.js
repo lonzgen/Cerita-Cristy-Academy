@@ -8,7 +8,9 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const fmtDate = (ts) => { if (!ts) return ''; const d = new Date(ts); return isNaN(d) ? '' : `${d.getDate()} ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`; };
-let admRevSearch = '', admRevFilter = 0;
+let admRevSearch = '', admRevFilter = 0, admRevPage = 1;
+const ADM_REV_PER = 8;
+let admRevSearchTimer = null;
 
 let user = null, isAdmin = false, currentSec = 'reviews', editingId = null, activeFields = [];
 
@@ -324,39 +326,60 @@ async function compressImage(file, maxDim = 1200, quality = 0.82) {
    REVIEWS (moderasi)
    ============================================ */
 async function renderReviews() {
-  $('list').innerHTML = '<div class="empty">Memuat…</div>';
-  const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
-  if (error) { $('list').innerHTML = `<div class="empty">Gagal memuat: ${esc(error.message)}</div>`; return; }
-  window._reviewsCache = data || [];
   const ratings = [0, 5, 4, 3, 2, 1];
   $('list').innerHTML = `
     <div class="rev-admin-controls">
-      <input type="text" id="revSearch" placeholder="Cari nama atau isi ulasan..." value="${esc(admRevSearch)}"/>
+      <div class="rev-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="revSearch" placeholder="Cari nama atau isi ulasan…" value="${esc(admRevSearch)}"/>
+      </div>
       <div class="rev-admin-filter" id="revAdminFilter">
-        ${ratings.map(n => `<button class="af-pill${admRevFilter === n ? ' active' : ''}" data-r="${n}">${n === 0 ? 'Semua' : n + '★'}</button>`).join('')}
+        ${ratings.map(n => `<button class="af-pill${admRevFilter === n ? ' active' : ''}" data-r="${n}">${n === 0 ? 'Semua' : n + '<span class="st">★</span>'}</button>`).join('')}
       </div>
     </div>
-    <div id="revAdminList"></div>`;
+    <div id="revAdminList"><div class="empty">Memuat…</div></div>
+    <div id="revPager" class="rev-pager"></div>`;
   const search = $('revSearch');
-  search.addEventListener('input', () => { admRevSearch = search.value; renderReviewList(); });
+  search.addEventListener('input', () => {
+    admRevSearch = search.value;
+    clearTimeout(admRevSearchTimer);
+    admRevSearchTimer = setTimeout(() => { admRevPage = 1; loadReviewPage(); }, 350);
+  });
   $('revAdminFilter').addEventListener('click', e => {
     const b = e.target.closest('[data-r]'); if (!b) return;
     admRevFilter = +b.dataset.r;
     $('revAdminFilter').querySelectorAll('.af-pill').forEach(p => p.classList.toggle('active', p === b));
-    renderReviewList();
+    admRevPage = 1;
+    loadReviewPage();
   });
-  renderReviewList();
+  loadReviewPage();
 }
 
-function renderReviewList() {
+/* Ambil HANYA 8 ulasan per halaman dari server (range + count), plus filter & pencarian
+   server-side, supaya query tetap ringan meski data sudah banyak. */
+async function loadReviewPage() {
   const box = $('revAdminList');
+  const pager = $('revPager');
   if (!box) return;
-  const q = admRevSearch.trim().toLowerCase();
-  let list = (window._reviewsCache || []);
-  if (admRevFilter) list = list.filter(r => r.rating === admRevFilter);
-  if (q) list = list.filter(r => (r.name || '').toLowerCase().includes(q) || (r.body || '').toLowerCase().includes(q));
-  if (!list.length) { box.innerHTML = '<div class="empty">Tidak ada ulasan yang cocok.</div>'; return; }
-  box.innerHTML = list.map(r => {
+  const from = (admRevPage - 1) * ADM_REV_PER;
+  const to = from + ADM_REV_PER - 1;
+  let query = supabaseClient.from('reviews')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to);
+  if (admRevFilter) query = query.eq('rating', admRevFilter);
+  const q = admRevSearch.trim().replace(/[,()*%]/g, ' ').trim();
+  if (q) query = query.or(`name.ilike.*${q}*,body.ilike.*${q}*`);
+  const { data, error, count } = await query;
+  if (error) { box.innerHTML = `<div class="empty">Gagal memuat: ${esc(error.message)}</div>`; if (pager) pager.innerHTML = ''; return; }
+  if ((!data || !data.length) && admRevPage > 1) { admRevPage--; return loadReviewPage(); }
+  window._reviewsCache = data || [];
+  if (!data || !data.length) {
+    box.innerHTML = '<div class="empty">Tidak ada ulasan yang cocok.</div>';
+    if (pager) pager.innerHTML = '';
+    return;
+  }
+  box.innerHTML = data.map(r => {
     const tag = r.verified ? '<span class="tag ok">Tampil</span>' : '<span class="tag pend">Menunggu</span>';
     const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
     const toggle = r.verified
@@ -371,6 +394,21 @@ function renderReviewList() {
         <button class="mini danger" onclick="deleteReview('${r.id}')">Hapus</button>
       </div></div>`;
   }).join('');
+  const total = count || 0;
+  const totalPages = Math.max(1, Math.ceil(total / ADM_REV_PER));
+  const start = from + 1, end = from + data.length;
+  if (pager) {
+    pager.innerHTML = `
+      <span class="info">Menampilkan ${start}–${end} dari ${total} ulasan</span>
+      <div class="nav">
+        <button id="revPrev" ${admRevPage <= 1 ? 'disabled' : ''}>‹</button>
+        <span class="pg">Halaman ${admRevPage} dari ${totalPages}</span>
+        <button id="revNext" ${admRevPage >= totalPages ? 'disabled' : ''}>›</button>
+      </div>`;
+    const prev = $('revPrev'), next = $('revNext');
+    if (prev) prev.onclick = () => { if (admRevPage > 1) { admRevPage--; loadReviewPage(); } };
+    if (next) next.onclick = () => { if (admRevPage < totalPages) { admRevPage++; loadReviewPage(); } };
+  }
 }
 window.editReview = (id) => {
   const row = (window._reviewsCache || []).find(x => x.id === id);
@@ -380,7 +418,7 @@ window.setVerify = async (id, val) => {
   const { error } = await supabaseClient.from('reviews').update({ verified: val }).eq('id', id);
   if (error) { toast('Gagal memperbarui: ' + error.message, 'error'); return; }
   toast(val ? 'Ulasan ditampilkan di website' : 'Ulasan disembunyikan', 'success');
-  renderReviews();
+  loadReviewPage();
   updatePendingBadge();
 };
 window.deleteReview = async (id) => {
@@ -388,7 +426,7 @@ window.deleteReview = async (id) => {
   const { error } = await supabaseClient.from('reviews').delete().eq('id', id);
   if (error) { toast('Gagal menghapus: ' + error.message, 'error'); return; }
   toast('Ulasan berhasil dihapus', 'success');
-  renderReviews();
+  loadReviewPage();
   updatePendingBadge();
 };
 
