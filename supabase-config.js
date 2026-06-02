@@ -8,5 +8,16 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Nomor WhatsApp Business (tanpa tanda + / spasi)
 const WA_NUMBER = "62895321540399";
 
-// Inisialisasi client (library dimuat via CDN di <head>)
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* Pisahkan sesi login halaman ADMIN dan halaman PUBLIK supaya tidak saling
+   bentrok (keduanya di domain yang sama). Admin pakai penyimpanan sendiri,
+   pengunjung/peserta pakai penyimpanan sendiri. */
+const _isAdminPage = location.pathname.toLowerCase().includes("admin");
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storageKey: _isAdminPage ? "cca-auth-admin" : "cca-auth-public",
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
