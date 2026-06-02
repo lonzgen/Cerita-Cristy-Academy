@@ -3,301 +3,166 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Cerita Cristy Academy — Kelas Public Speaking</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="style.css"/>
+<title>M-Admin · Cerita Cristy Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --blue:#1C5C9A;--blue-deep:#14477A;--blue-dark:#0E3358;--blue-tint:#EAF1F8;
+  --gold:#FFCC00;--gold-deep:#E6B400;--ink:#16263A;--ink-soft:#5A6B7D;
+  --line:rgba(28,92,154,.16);--bg:#F4F8FC;--card:#fff;
+  --shadow:0 18px 40px -24px rgba(20,71,122,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Poppins',sans-serif;letter-spacing:-.02em}
+button{font-family:inherit;cursor:pointer}
+img{max-width:100%;display:block}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--card);border-radius:24px;padding:48px 40px;box-shadow:var(--shadow);text-align:center;max-width:420px;width:100%;border:1px solid var(--line)}
+.login-card .logo{font-family:'Poppins';font-weight:800;font-size:24px;color:var(--blue)}
+.login-card .logo b{color:var(--gold-deep)}
+.login-card p{color:var(--ink-soft);font-size:14px;margin:10px 0 28px}
+.gbtn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--ink);border:1px solid var(--line);padding:13px 24px;border-radius:100px;font-weight:600;font-size:14px;transition:transform .25s,box-shadow .25s}
+.gbtn:hover{transform:translateY(-2px);box-shadow:0 12px 26px -14px rgba(20,71,122,.5)}
+.err{color:#c0392b;font-size:13px;margin-top:16px}
+
+/* APP LAYOUT */
+.app{display:none;min-height:100vh;grid-template-columns:240px 1fr}
+.sidebar{background:var(--blue-dark);color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.sidebar .brand{font-family:'Poppins';font-weight:800;font-size:18px;padding:8px 12px 20px}
+.sidebar .brand b{color:var(--gold)}
+.navbtn{display:flex;align-items:center;gap:10px;background:transparent;border:none;color:rgba(255,255,255,.78);padding:12px 14px;border-radius:12px;text-align:left;font-size:14px;font-weight:600;transition:background .2s,color .2s}
+.navbtn:hover{background:rgba(255,255,255,.08);color:#fff}
+.navbtn.active{background:var(--gold);color:var(--ink)}
+.nav-badge{display:none;margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;line-height:1}
+.rev-admin-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.rev-search{position:relative;flex:1;min-width:240px}
+.rev-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#9aa6b6;pointer-events:none}
+.rev-search input{width:100%;box-sizing:border-box;padding:11px 14px 11px 42px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;background:#fff;color:var(--ink)}
+.rev-search input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(28,92,154,.12)}
+.rev-admin-filter{display:flex;gap:6px;flex-wrap:wrap}
+.af-pill{border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);padding:9px 14px;border-radius:100px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:3px}
+.af-pill .st{color:#FFB400}
+.af-pill:hover{border-color:var(--blue);color:var(--blue)}
+.af-pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.af-pill.active .st{color:#fff}
+.rev-pager{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:18px}
+.rev-pager .info{font-size:13px;color:var(--ink-soft)}
+.rev-pager .nav{display:flex;gap:8px;align-items:center}
+.rev-pager .pg{font-size:13px;font-weight:600;color:var(--ink);padding:0 6px}
+.rev-pager .nav button{width:38px;height:38px;border-radius:10px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.rev-pager .nav button:disabled{border-color:var(--line);background:#f4f6fa;color:#b6bfcb;cursor:not-allowed}
+.sidebar .spacer{flex:1}
+.sidebar .who{font-size:12px;color:rgba(255,255,255,.6);padding:8px 14px;word-break:break-all}
+.logout{background:rgba(255,255,255,.1);border:none;color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600}
+
+.main{padding:32px 36px;overflow-x:hidden}
+.main-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.main-head h2{font-size:24px}
+.main-head .sub{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.btn-add{background:var(--blue);color:#fff;border:none;padding:11px 20px;border-radius:100px;font-weight:600;font-size:14px}
+.btn-add:hover{background:var(--blue-deep)}
+
+/* LIST */
+.list{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 8px 24px -20px rgba(20,71,122,.4)}
+.item .thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;background:var(--blue-tint);flex-shrink:0}
+.item .info{flex:1;min-width:0}
+.item .info h4{font-size:15px;margin-bottom:3px}
+.item .info p{font-size:13px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis}
+.item .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;margin-right:6px}
+.tag.ok{background:#e6f6ec;color:#1e8e4e}.tag.pend{background:#fff3d6;color:#b8860b}.tag.hot{background:#ffe3e3;color:#c0392b}
+.item .acts{display:flex;gap:8px;flex-shrink:0}
+.mini{border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink)}
+.mini:hover{border-color:var(--blue);color:var(--blue)}
+.mini.danger:hover{border-color:#c0392b;color:#c0392b}
+.mini.go{background:var(--blue);color:#fff;border-color:var(--blue)}
+.empty{color:var(--ink-soft);font-size:14px;padding:40px;text-align:center;background:var(--card);border-radius:14px;border:1px dashed var(--line)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(14,51,88,.45);backdrop-filter:blur(3px);z-index:50;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:28px;max-width:560px;width:100%;box-shadow:var(--shadow)}
+.modal h3{font-size:20px;margin-bottom:20px}
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.fld input[type=text],.fld input[type=number],.fld input[type=date],.fld input[type=url],.fld textarea,.fld select{
+  width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:#fff}
+.fld textarea{min-height:80px;resize:vertical}
+.fld .hint{font-size:11px;color:var(--ink-soft);margin-top:4px}
+.fld.check{display:flex;align-items:center;gap:8px}
+.fld.check input{width:18px;height:18px}
+.fld.check label{margin:0}
+.preview{width:90px;height:90px;border-radius:10px;object-fit:cover;border:1px solid var(--line);margin-top:8px;display:none}
+.modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.modal-acts .save{background:var(--blue);color:#fff;border:none;padding:11px 24px;border-radius:100px;font-weight:600}
+.modal-acts .cancel{background:#fff;border:1px solid var(--line);padding:11px 22px;border-radius:100px;font-weight:600;color:var(--ink-soft)}
+
+@media(max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}
+  .sidebar .brand{width:100%;padding:6px 8px 12px}
+  .sidebar .spacer{display:none}.sidebar .who{display:none}
+  .main{padding:22px 18px}
+}
+</style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a class="brand" href="#">
-    <img src="Photo/cca-logo.png" alt="Cerita Cristy Academy" class="brand-logo"/>
-    <span class="brand-name"><b> Cerita  Cristy </b> <b class="yellow-text"> Academy </b> </span>
-  </a>
-  <div class="nav-links" id="navLinks">
-    <a href="#about">Tentang</a>
-    <a href="#kelas">Kelas</a>
-    <a href="#jadwal">Jadwal</a>
-    <a href="#testi">Testimoni</a>
-    <a href="#ulasan">Ulasan</a>
-    <a href="#faq">FAQ</a>
-    <a class="btn btn-fill menu-cta" href="https://wa.me/62895321540399?text=Halo%20CCA,%20saya%20mau%20daftar%20kelas">Daftar via WhatsApp</a>
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">Cerita Cristy <b>Academy</b></div>
+    <p>Panel Admin · Masuk dengan akun Google yang terdaftar sebagai admin.</p>
+    <button class="gbtn" id="loginBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.4 0-11.5-5.1-11.5-11.5S17.6 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10 0 18.5-7.3 18.5-19 0-1.3-.1-2.7-.9-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 16.3 4.5 9.7 8.9 6.3 14.7z"/><path fill="#4CAF50" d="M24 43.5c5.2 0 9.6-1.7 13-4.7l-6-5.1c-1.9 1.4-4.3 2.3-7 2.3-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.6 39.1 16.2 43.5 24 43.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6 5.1c-.4.4 6.3-4.6 6.3-14.5 0-1.3-.1-2.7-.9-3.5z"/></svg>
+      Login dengan Google
+    </button>
+    <p class="err" id="loginErr" style="display:none"></p>
   </div>
-  <a class="btn btn-fill nav-cta" href="https://wa.me/62895321540399?text=Halo%20CCA,%20saya%20mau%20info%20kelas">Daftar</a>
-  <button class="hamburger" id="hamburger" aria-label="Buka menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-<div class="nav-overlay" id="navOverlay"></div>
+</div>
 
-<!-- HERO -->
-<header class="hero">
-  <div class="hero-blob"></div>
-  <div class="hero-inner">
-    <div class="hero-left">
-      <div class="hero-eyebrow"> <span> </span> Kelas Public Speaking </div>
-      <h1>Berani Bicara,<br/><em>Penuh Percaya Diri.</em></h1>
-      <p class="hero-desc">Cerita Cristy Academy membantu Anda mengubah rasa gugup menjadi karisma. Webinar &amp; kelas public speaking yang sudah membentuk 1.200+ peserta.</p>
-      <div class="hero-cta">
-        <a class="btn btn-fill" href="https://wa.me/62895321540399?text=Halo%20CCA,%20saya%20mau%20daftar%20kelas">Daftar via WhatsApp</a>
-        <a class="btn btn-line" href="#kelas">Lihat Kelas</a>
-      </div>
-      <div class="hero-trust">
-        <div class="trust-stars">★★★★★</div>
-        <span>Rating <b id="heroRating">—</b> dari <span id="heroReviewCount">—</span> ulasan peserta</span>
-      </div>
+<!-- APP -->
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="brand">CCA <b>Admin</b></div>
+    <button class="navbtn active" data-sec="reviews">⭐ Ulasan <span class="nav-badge" id="pendingBadge"></span></button>
+    <button class="navbtn" data-sec="classes">🎓 Kelas &amp; Jadwal</button>
+    <button class="navbtn" data-sec="partners">🤝 Partner / Logo</button>
+    <button class="navbtn" data-sec="showreel">🎬 Showreel</button>
+    <button class="navbtn" data-sec="alumni">🗣️ Suara Alumni</button>
+    <button class="navbtn" data-sec="gallery">📸 Momen After Class</button>
+    <button class="navbtn" data-sec="settings">⚙️ Pengaturan</button>
+    <div class="spacer"></div>
+    <div class="who" id="who"></div>
+    <button class="logout" id="logoutBtn">Keluar</button>
+  </aside>
+  <main class="main">
+    <div class="main-head">
+      <div><h2 id="secTitle">Ulasan</h2><div class="sub" id="secSub"></div></div>
+      <button class="btn-add" id="addBtn" style="display:none">+ Tambah</button>
     </div>
-    <div class="hero-right">
-      <div class="hero-photo">
-        <div class="photo-backing"></div>
-        <img src="Photo/profile-picture.JPEG" alt="Speaker Cerita Cristy Academy" class="speaker-img"/>
+    <div class="list" id="list"><div class="empty">Memuat…</div></div>
+  </main>
+</div>
 
-        <!-- floating proof card: rating -->
-        <div class="float-card fc-rating">
-          <div class="fc-stars">★★★★★</div>
-          <div class="fc-text"><b id="fcRating">—</b><span id="fcReviewCount">— ulasan</span></div>
-        </div>
-
-        <!-- floating proof card: alumni -->
-        <div class="float-card fc-alumni">
-          <div class="avatars"><i>R</i><i>B</i><i>S</i><i class="more">+</i></div>
-          <div class="fc-text"><b id="fcAlumni">—</b><span>Alumni terlatih</span></div>
-        </div>
-
-        <!-- brand chat-bubble motif (tiga titik) -->
-        <div class="chat-motif"><span></span><span></span><span></span></div>
-      </div>
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Tambah</h3>
+    <div id="modalFields"></div>
+    <div class="modal-acts">
+      <button class="cancel" id="modalCancel">Batal</button>
+      <button class="save" id="modalSave">Simpan</button>
     </div>
   </div>
-</header>
-
-<!-- STATS -->
-<section class="stats">
-  <div class="stat"><div class="n"><span id="statPeserta">—</span><em>+</em></div><div class="lab">Peserta Terlatih</div></div>
-  <div class="stat"><div class="n"><span id="statPartner">—</span><em>+</em></div><div class="lab">Perusahaan Partner</div></div>
-  <div class="stat"><div class="n"><span id="statRating">—</span><em>★</em></div><div class="lab">Rating Peserta</div></div>
-  <div class="stat"><div class="n"><span id="statTahun">—</span><em>th</em></div><div class="lab">Pengalaman</div></div>
-</section>
-
-<!-- ABOUT -->
-<section id="about" class="section">
-  <div class="wrap reveal">
-    <div class="about">
-      <div class="about-visual">
-        <img src="Photo/profile-picture.JPEG" alt="Cerita Cristy Academy" class="about-logo"/>
-        <div class="about-deco"></div>
-        <div class="founder-tag">
-          <span class="ft-name">Cristy Natalia Lontoh SE</span>
-          <span class="ft-role">Founder &amp; Lead Trainer</span>
-        </div>
-      </div>
-      <div class="about-text">
-        <div class="kicker">Tentang Kami</div>
-        <h2 class="h-big">Cerita Cristy <span class="text-blue">Academy</span></h2>
-        <p class="lead">"Setiap orang punya cerita yang layak didengar. Tugas kami membantu Anda menyampaikannya dengan percaya diri."</p>
-        <p>Cerita Cristy Academy (CCA) adalah pusat pelatihan public speaking dengan pengalaman lebih dari satu dekade. Kami telah melatih ribuan profesional — dari fresh graduate hingga C-level executive di perusahaan ternama Indonesia.</p>
-        <p>Dipimpin langsung oleh <b>Cristy Natalia Lontoh</b>, trainer bersertifikat resmi. Metode pelatihannya praktis dan langsung bisa diterapkan keesokan harinya.</p>
-        <div class="creds">
-          <div class="cred"><b>Dale Carnegie</b> Certified</div>
-          <div class="cred"><b>TEDx</b> Speaker</div>
-          <div class="cred"><b>NLP</b> Practitioner</div>
-          <div class="cred"><b>10+</b> Tahun</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="partners">
-      <div class="partners-lab">Telah dipercaya oleh</div>
-      <div class="partners-row" id="partnersRow"></div>
-    </div>
-  </div>
-</section>
-
-<!-- CLASSES -->
-<section id="kelas" class="section section-tint">
-  <div class="wrap reveal">
-    <div class="classes-head">
-      <div>
-        <div class="kicker">Program Pelatihan</div>
-        <h2 class="h-big">Pilih Kelasmu</h2>
-      </div>
-      <p class="head-note">Setiap program dirancang dengan metode praktis yang langsung bisa diterapkan keesokan harinya.</p>
-    </div>
-    <div class="cards" id="classCards"></div>
-  </div>
-</section>
-
-<!-- SCHEDULE -->
-<section id="jadwal" class="section">
-  <div class="wrap reveal">
-    <div class="kicker">Jadwal Mendatang</div>
-    <h2 class="h-big">Kelas Berikutnya</h2>
-    <div class="sched" id="scheduleRows"></div>
-  </div>
-</section>
-
-<!-- REEL -->
-<section class="reel-sec">
-  <div class="wrap reveal">
-    <div class="kicker kicker-light">Showreel</div>
-    <h2 class="h-big">Lihat Aksinya <em>di Panggung</em></h2>
-    <div id="showreelWrap"></div>
-  </div>
-</section>
-
-<!-- VIDEO TESTI -->
-<section id="testi" class="section">
-  <div class="wrap reveal">
-    <div class="kicker">Testimoni Video</div>
-    <h2 class="h-big">Suara Para Alumni</h2>
-    <div class="vids" id="alumniVids"></div>
-  </div>
-</section>
-
-<!-- PHOTO GALLERY -->
-<section class="section section-tint">
-  <div class="wrap reveal">
-    <div class="kicker">Galeri Peserta</div>
-    <h2 class="h-big">Momen After Class</h2>
-    <div class="gal" id="galleryGrid"></div>
-  </div>
-</section>
-    </div>
-  </div>
-</section>
-
-<!-- REVIEWS -->
-<section id="ulasan" class="rev-sec">
-  <div class="wrap reveal">
-    <div class="kicker">Ulasan Peserta</div>
-    <h2 class="h-big">Apa Kata <em>Mereka?</em></h2>
-
-    <div class="rev-summary">
-      <div class="score">
-        <div class="big" id="revBig">—</div>
-        <div class="stars" id="revStars">★★★★★</div>
-        <div class="cnt" id="revCnt">memuat ulasan…</div>
-      </div>
-      <div class="bars" id="revBars"></div>
-    </div>
-
-    <div class="rev-controls">
-      <div class="rev-group">
-        <span class="rev-group-label">Urutkan</span>
-        <div class="rev-pills" id="revSort">
-          <button class="rev-pill active" data-sort="newest">Terbaru</button>
-          <button class="rev-pill" data-sort="oldest">Terlama</button>
-          <button class="rev-pill" data-sort="highest">Rating Tertinggi</button>
-          <button class="rev-pill" data-sort="lowest">Rating Terendah</button>
-        </div>
-      </div>
-      <div class="rev-group">
-        <span class="rev-group-label">Filter Rating</span>
-        <div class="rev-pills rating" id="revFilter">
-          <button class="rev-pill active" data-rating="0">Semua</button>
-          <button class="rev-pill" data-rating="5">5 ★</button>
-          <button class="rev-pill" data-rating="4">4 ★</button>
-          <button class="rev-pill" data-rating="3">3 ★</button>
-          <button class="rev-pill" data-rating="2">2 ★</button>
-          <button class="rev-pill" data-rating="1">1 ★</button>
-        </div>
-      </div>
-      <span class="rev-shown" id="revShown"></span>
-    </div>
-
-    <div class="rev-grid" id="reviewGrid"></div>
-    <div class="rev-more-wrap"><button class="rev-more" id="revMore" style="display:none">Muat lebih banyak</button></div>
-
-    <!-- REVIEW FORM -->
-    <div class="rform">
-      <h3>Tulis Ulasanmu</h3>
-      <p class="sub">Sudah ikut kelas? Bagikan pengalamanmu untuk membantu peserta lain 🙌</p>
-
-      <!-- Auth gate: login Google sebelum menulis ulasan -->
-      <div class="auth-bar" id="authBar">
-        <button class="gbtn" id="googleLogin">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.4 0-11.5-5.1-11.5-11.5S17.6 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10 0 18.5-7.3 18.5-19 0-1.3-.1-2.7-.9-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 16.3 4.5 9.7 8.9 6.3 14.7z"/><path fill="#4CAF50" d="M24 43.5c5.2 0 9.6-1.7 13-4.7l-6-5.1c-1.9 1.4-4.3 2.3-7 2.3-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.6 39.1 16.2 43.5 24 43.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6 5.1c-.4.4 6.3-4.6 6.3-14.5 0-1.3-.1-2.7-.9-3.5z"/></svg>
-          Login dengan Google untuk menulis ulasan
-        </button>
-        <div class="auth-user" id="authUser" style="display:none">
-          <img id="authAvatar" alt="" />
-          <span>Masuk sebagai <b id="authName"></b></span>
-          <button class="logout-btn" id="googleLogout">Keluar</button>
-        </div>
-      </div>
-
-      <fieldset id="reviewFields" disabled>
-      <div class="picker" id="picker">
-        <button class="sb" data-v="1">★</button>
-        <button class="sb" data-v="2">★</button>
-        <button class="sb" data-v="3">★</button>
-        <button class="sb" data-v="4">★</button>
-        <button class="sb" data-v="5">★</button>
-      </div>
-      <p class="plabel" id="plabel">Tap bintang untuk memberi rating</p>
-      <div class="frow">
-        <div class="fg"><label>Nama Lengkap</label><input id="rn" type="text" placeholder="Contoh: Budi Santoso"/></div>
-        <div class="fg"><label>Kelas yang Diikuti</label><select id="rk"><option value="">Pilih kelas...</option></select></div>
-      </div>
-      <div class="fg full-row"><label>Ulasan</label><textarea id="rt" maxlength="300" placeholder="Ceritakan pengalamanmu... (maks. 300 karakter)"></textarea></div>
-      <div class="cc" id="cc">0 / 300 karakter</div>
-      <button class="send" id="sendReview">Kirim Ulasan</button>
-      </fieldset>
-      <p class="note">✓ Ulasan akan diverifikasi admin sebelum ditampilkan</p>
-    </div>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section id="faq" class="section">
-  <div class="wrap reveal">
-    <div class="kicker">FAQ</div>
-    <h2 class="h-big">Sering Ditanya</h2>
-    <div class="faq">
-      <div class="fi"><div class="fq">Bagaimana cara mendaftar kelas?<span class="ic">+</span></div><div class="fa"><p>Klik tombol "Pesan via WhatsApp" pada kelas yang kamu minati. Tim kami merespons dalam 1×24 jam untuk proses pembayaran dan konfirmasi.</p></div></div>
-      <div class="fi"><div class="fq">Apakah ada rekaman setelah kelas?<span class="ic">+</span></div><div class="fa"><p>Ya! Untuk kelas online, semua sesi direkam dan dapat diakses selama 30 hari melalui link privat yang dikirim via WhatsApp.</p></div></div>
-      <div class="fi"><div class="fq">Metode pembayaran apa yang tersedia?<span class="ic">+</span></div><div class="fa"><p>Transfer bank (BCA, Mandiri, BRI), GoPay, OVO, QRIS, dan kartu kredit. Invoice dikirim via WhatsApp setelah konfirmasi.</p></div></div>
-      <div class="fi"><div class="fq">Apakah sertifikatnya resmi?<span class="ic">+</span></div><div class="fa"><p>Sertifikat dikeluarkan lembaga resmi terdaftar, dalam format digital (PDF), dan bisa dicantumkan di LinkedIn atau portofolio profesional.</p></div></div>
-      <div class="fi"><div class="fq">Ada garansi uang kembali?<span class="ic">+</span></div><div class="fa"><p>Ya, garansi kepuasan 100%. Jika setelah sesi pertama kamu merasa kelas tidak sesuai ekspektasi, kami kembalikan pembayaran penuh.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA STRIP -->
-<section class="cta-strip">
-  <div class="cta-blob"></div>
-  <h2>Siap Menemukan <em>Suaramu?</em></h2>
-  <p>Mulai perjalanan public speaking-mu bersama Cerita Cristy Academy hari ini.</p>
-  <a class="btn btn-gold" href="https://wa.me/62895321540399?text=Halo%20CCA,%20saya%20siap%20daftar%20kelas">Mulai Sekarang →</a>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="foot-top">
-    <div class="foot-brand">
-      <a class="brand" href="#"><img src="cca-logo.png" alt="CCA" class="brand-logo"/><span class="brand-name foot-name">Cerita Cristy <b>Academy</b></span></a>
-      <p>Pusat pelatihan public speaking yang telah membantu 1.200+ profesional menemukan suara dan kepercayaan diri mereka.</p>
-    </div>
-    <div class="fcol"><h6>Menu</h6><a href="#about">Tentang</a><a href="#kelas">Kelas</a><a href="#jadwal">Jadwal</a><a href="#ulasan">Ulasan</a></div>
-    <div class="fcol"><h6>Terhubung</h6><a href="#">Instagram</a><a href="#">YouTube</a><a href="#">LinkedIn</a><a href="#">TikTok</a></div>
-  </div>
-  <div class="foot-bot">
-    <p>© 2025 Cerita Cristy Academy. All rights reserved.</p>
-    <p>Jakarta, Indonesia</p>
-  </div>
-</footer>
-
-<!-- WHATSAPP STICKY -->
-<a class="wa" href="https://wa.me/62895321540399?text=Halo%20CCA,%20saya%20mau%20tanya%20info%20kelas" target="_blank">
-  <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.488-.917z"/></svg>
-  <span class="txt">Chat WhatsApp</span>
-</a>
+</div>
 
 <script src="supabase-config.js"></script>
 <script src="notify.js"></script>
-<script src="script.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
