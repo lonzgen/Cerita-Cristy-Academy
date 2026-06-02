@@ -38,13 +38,23 @@ img{max-width:100%;display:block}
 .navbtn:hover{background:rgba(255,255,255,.08);color:#fff}
 .navbtn.active{background:var(--gold);color:var(--ink)}
 .nav-badge{display:none;margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;line-height:1}
-.rev-admin-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.rev-admin-controls input{flex:1;min-width:220px;padding:11px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:14px;background:#fff}
-.rev-admin-controls input:focus{outline:none;border-color:var(--blue)}
+.rev-admin-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.rev-search{position:relative;flex:1;min-width:240px}
+.rev-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#9aa6b6;pointer-events:none}
+.rev-search input{width:100%;box-sizing:border-box;padding:11px 14px 11px 42px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;background:#fff;color:var(--ink)}
+.rev-search input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(28,92,154,.12)}
 .rev-admin-filter{display:flex;gap:6px;flex-wrap:wrap}
-.af-pill{border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);padding:8px 14px;border-radius:100px;font-family:inherit;font-weight:600;font-size:12px;cursor:pointer;transition:all .2s}
+.af-pill{border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);padding:9px 14px;border-radius:100px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:3px}
+.af-pill .st{color:#FFB400}
 .af-pill:hover{border-color:var(--blue);color:var(--blue)}
 .af-pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.af-pill.active .st{color:#fff}
+.rev-pager{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:18px}
+.rev-pager .info{font-size:13px;color:var(--ink-soft)}
+.rev-pager .nav{display:flex;gap:8px;align-items:center}
+.rev-pager .pg{font-size:13px;font-weight:600;color:var(--ink);padding:0 6px}
+.rev-pager .nav button{width:38px;height:38px;border-radius:10px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.rev-pager .nav button:disabled{border-color:var(--line);background:#f4f6fa;color:#b6bfcb;cursor:not-allowed}
 .sidebar .spacer{flex:1}
 .sidebar .who{font-size:12px;color:rgba(255,255,255,.6);padding:8px 14px;word-break:break-all}
 .logout{background:rgba(255,255,255,.1);border:none;color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600}
