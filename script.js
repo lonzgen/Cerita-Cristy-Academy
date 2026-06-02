@@ -218,47 +218,83 @@ async function loadReviews() {
   renderReviewGrid();
 }
 
-/* Render daftar ulasan sesuai pilihan Urutkan & Filter rating.
+/* Render daftar ulasan sesuai pilihan Urutkan & Filter rating, dengan paginasi.
    Ringkasan (rata-rata & grafik) tetap dari SEMUA ulasan, tidak terpengaruh filter. */
-function renderReviewGrid() {
+const REV_PAGE = 6;            // jumlah ulasan per "halaman"
+let revShownCount = REV_PAGE;  // berapa yang sedang ditampilkan
+let revSortBy = 'newest', revFilterRating = 0;
+
+function getFilteredSortedReviews() {
+  let list = allReviews.slice();
+  if (revFilterRating) list = list.filter(r => r.rating === revFilterRating);
+  list.sort((a, b) => {
+    const da = new Date(a.created_at), db = new Date(b.created_at);
+    if (revSortBy === 'newest') return db - da;
+    if (revSortBy === 'oldest') return da - db;
+    if (revSortBy === 'highest') return b.rating - a.rating || (db - da);
+    if (revSortBy === 'lowest') return a.rating - b.rating || (db - da);
+    return 0;
+  });
+  return list;
+}
+
+function renderReviewGrid(reset) {
+  if (reset) revShownCount = REV_PAGE;
   const grid = $('reviewGrid');
   if (!grid) return;
   const shown = $('revShown');
-  const sort = $('revSort')?.value || 'newest';
-  const filter = +($('revFilter')?.value || 0);
+  const more = $('revMore');
 
   if (!allReviews.length) {
     grid.innerHTML = '<p class="empty-note">Jadilah yang pertama memberi ulasan!</p>';
     if (shown) shown.textContent = '';
+    if (more) more.style.display = 'none';
     return;
   }
 
-  let list = allReviews.slice();
-  if (filter) list = list.filter(r => r.rating === filter);
-  list.sort((a, b) => {
-    const da = new Date(a.created_at), db = new Date(b.created_at);
-    if (sort === 'newest') return db - da;
-    if (sort === 'oldest') return da - db;
-    if (sort === 'highest') return b.rating - a.rating || (db - da);
-    if (sort === 'lowest') return a.rating - b.rating || (db - da);
-    return 0;
-  });
-
-  if (shown) shown.textContent = `Menampilkan ${list.length} dari ${allReviews.length} ulasan`;
+  const list = getFilteredSortedReviews();
   if (!list.length) {
     grid.innerHTML = '<p class="empty-note">Belum ada ulasan dengan rating tersebut.</p>';
+    if (shown) shown.textContent = `0 dari ${allReviews.length} ulasan`;
+    if (more) more.style.display = 'none';
     return;
   }
-  grid.innerHTML = list.map(r => `
+
+  const slice = list.slice(0, revShownCount);
+  grid.innerHTML = slice.map(r => {
+    const dt = r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    return `
     <div class="rc">
       <div class="rc-h"><div class="av">${initials(r.name)}</div><div><h5>${esc(r.name)}</h5><small>${esc(r.kelas || '')}</small></div></div>
       <div class="rc-stars">${starString(r.rating)}</div>
       <p>${esc(r.body)}</p>
-      <div class="vbadge">Peserta Terverifikasi</div>
-    </div>`).join('');
+      <div class="rc-foot"><span class="vbadge">Peserta Terverifikasi</span><span class="rc-date">${dt}</span></div>
+    </div>`;
+  }).join('');
+
+  if (shown) shown.textContent = `Menampilkan ${slice.length} dari ${list.length} ulasan`;
+  if (more) more.style.display = (revShownCount < list.length) ? 'inline-flex' : 'none';
 }
-$('revSort')?.addEventListener('change', renderReviewGrid);
-$('revFilter')?.addEventListener('change', renderReviewGrid);
+
+// pill Urutkan (reset ke halaman 1)
+$('revSort')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-sort]'); if (!b) return;
+  revSortBy = b.dataset.sort;
+  b.parentElement.querySelectorAll('.rev-pill').forEach(p => p.classList.toggle('active', p === b));
+  renderReviewGrid(true);
+});
+// pill Filter Rating (reset ke halaman 1)
+$('revFilter')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-rating]'); if (!b) return;
+  revFilterRating = +b.dataset.rating;
+  b.parentElement.querySelectorAll('.rev-pill').forEach(p => p.classList.toggle('active', p === b));
+  renderReviewGrid(true);
+});
+// tombol Muat lebih banyak
+$('revMore')?.addEventListener('click', () => {
+  revShownCount += REV_PAGE;
+  renderReviewGrid();
+});
 
 /* ============================================
    RENDER: PARTNERS (logo)

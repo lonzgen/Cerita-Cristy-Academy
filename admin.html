@@ -37,6 +37,7 @@ img{max-width:100%;display:block}
 .navbtn{display:flex;align-items:center;gap:10px;background:transparent;border:none;color:rgba(255,255,255,.78);padding:12px 14px;border-radius:12px;text-align:left;font-size:14px;font-weight:600;transition:background .2s,color .2s}
 .navbtn:hover{background:rgba(255,255,255,.08);color:#fff}
 .navbtn.active{background:var(--gold);color:var(--ink)}
+.nav-badge{display:none;margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;line-height:1}
 .sidebar .spacer{flex:1}
 .sidebar .who{font-size:12px;color:rgba(255,255,255,.6);padding:8px 14px;word-break:break-all}
 .logout{background:rgba(255,255,255,.1);border:none;color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600}
@@ -111,7 +112,7 @@ img{max-width:100%;display:block}
 <div class="app" id="app">
   <aside class="sidebar">
     <div class="brand">CCA <b>Admin</b></div>
-    <button class="navbtn active" data-sec="reviews">⭐ Ulasan</button>
+    <button class="navbtn active" data-sec="reviews">⭐ Ulasan <span class="nav-badge" id="pendingBadge"></span></button>
     <button class="navbtn" data-sec="classes">🎓 Kelas &amp; Jadwal</button>
     <button class="navbtn" data-sec="partners">🤝 Partner / Logo</button>
     <button class="navbtn" data-sec="showreel">🎬 Showreel</button>

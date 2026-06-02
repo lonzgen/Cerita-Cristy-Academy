@@ -8,7 +8,6 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let user = null, isAdmin = false, currentSec = 'reviews', editingId = null, activeFields = [];
-let authChecked = false; // cegah pengecekan login jalan ganda (hindari request dobel)
 
 /* ============================================
    SKEMA TIAP SECTION
@@ -107,17 +106,25 @@ function showApp() {
   $('app').style.display = 'grid';
   $('who').textContent = user.email;
   selectSection('reviews');
+  updatePendingBadge();
+}
+/* Badge jumlah ulasan yang masih "Menunggu" (belum disetujui) */
+async function updatePendingBadge() {
+  const badge = document.getElementById('pendingBadge');
+  if (!badge) return;
+  const { count, error } = await supabaseClient
+    .from('reviews').select('id', { count: 'exact', head: true }).eq('verified', false);
+  if (error) return;
+  if (count && count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.style.display = 'inline-flex'; }
+  else { badge.style.display = 'none'; }
 }
 async function checkAuth() {
-  if (authChecked) return;
-  authChecked = true;
   const { data } = await supabaseClient.auth.getSession();
   user = data.session?.user || null;
-  if (!user) { authChecked = false; return showLogin(); }
+  if (!user) return showLogin();
   const { data: rows, error } = await supabaseClient.from('admins').select('email').eq('email', user.email);
   isAdmin = !error && rows && rows.length > 0;
   if (!isAdmin) {
-    authChecked = false;
     showLogin('Akun ini belum terdaftar sebagai admin. Tambahkan email Anda di tabel "admins" (lihat panduan), lalu coba lagi.');
     return;
   }
@@ -133,7 +140,7 @@ $('loginBtn').addEventListener('click', async () => {
 $('logoutBtn').addEventListener('click', async () => { await supabaseClient.auth.signOut(); location.reload(); });
 supabaseClient.auth.onAuthStateChange((event) => {
   if (event === 'SIGNED_IN') checkAuth();
-  if (event === 'SIGNED_OUT') { authChecked = false; showLogin(); }
+  if (event === 'SIGNED_OUT') showLogin();
 });
 
 /* ============================================
@@ -183,9 +190,10 @@ window.editRow = (sec, id) => {
   openModal(sec, row);
 };
 window.deleteRow = async (sec, id) => {
-  if (!confirm('Yakin hapus data ini?')) return;
+  if (!(await confirmDialog('Data ini akan dihapus permanen dan tidak bisa dikembalikan.', { title: 'Hapus data?' }))) return;
   const { error } = await supabaseClient.from(SCHEMAS[sec].table).delete().eq('id', id);
-  if (error) { alert('Gagal hapus: ' + error.message); return; }
+  if (error) { toast('Gagal menghapus: ' + error.message, 'error'); return; }
+  toast('Data berhasil dihapus', 'success');
   renderList(sec);
 };
 
@@ -257,9 +265,10 @@ $('modalSave').addEventListener('click', async () => {
     else res = await supabaseClient.from(s.table).insert(payload);
     if (res.error) throw res.error;
     $('modalBg').classList.remove('show');
+    toast(editingId ? 'Perubahan tersimpan' : 'Data berhasil ditambahkan', 'success');
     if (currentSec === 'reviews') renderReviews(); else renderList(currentSec);
   } catch (err) {
-    alert('Gagal menyimpan: ' + err.message);
+    toast('Gagal menyimpan: ' + err.message, 'error');
   } finally {
     btn.disabled = false; btn.textContent = 'Simpan';
   }
@@ -320,12 +329,14 @@ async function renderReviews() {
   $('list').innerHTML = data.map(r => {
     const tag = r.verified ? '<span class="tag ok">Tampil</span>' : '<span class="tag pend">Menunggu</span>';
     const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+    const dt = r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     const toggle = r.verified
       ? `<button class="mini" onclick="setVerify('${r.id}',false)">Sembunyikan</button>`
       : `<button class="mini go" onclick="setVerify('${r.id}',true)">Setujui</button>`;
     return `<div class="item"><div class="info">
         <h4>${tag}${esc(r.name)} <span style="color:var(--gold-deep)">${stars}</span></h4>
         <p><b>${esc(r.kelas || '')}</b> — ${esc(r.body)}</p>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:4px">🗓️ ${dt}</p>
       </div><div class="acts">${toggle}
         <button class="mini" onclick="editReview('${r.id}')">Edit</button>
         <button class="mini danger" onclick="deleteReview('${r.id}')">Hapus</button>
@@ -338,14 +349,18 @@ window.editReview = (id) => {
 };
 window.setVerify = async (id, val) => {
   const { error } = await supabaseClient.from('reviews').update({ verified: val }).eq('id', id);
-  if (error) { alert('Gagal: ' + error.message); return; }
+  if (error) { toast('Gagal memperbarui: ' + error.message, 'error'); return; }
+  toast(val ? 'Ulasan ditampilkan di website' : 'Ulasan disembunyikan', 'success');
   renderReviews();
+  updatePendingBadge();
 };
 window.deleteReview = async (id) => {
-  if (!confirm('Hapus ulasan ini?')) return;
+  if (!(await confirmDialog('Ulasan ini akan dihapus permanen.', { title: 'Hapus ulasan?' }))) return;
   const { error } = await supabaseClient.from('reviews').delete().eq('id', id);
-  if (error) { alert('Gagal: ' + error.message); return; }
+  if (error) { toast('Gagal menghapus: ' + error.message, 'error'); return; }
+  toast('Ulasan berhasil dihapus', 'success');
   renderReviews();
+  updatePendingBadge();
 };
 
 /* ============================================
@@ -369,8 +384,8 @@ async function renderSettings() {
   $('saveSettings').addEventListener('click', async () => {
     const rows = SETTING_KEYS.map(s => ({ key: s.k, value: $('set_' + s.k).value.trim() }));
     const { error } = await supabaseClient.from('settings').upsert(rows);
-    if (error) { alert('Gagal: ' + error.message); return; }
-    alert('Pengaturan disimpan ✅');
+    if (error) { toast('Gagal menyimpan: ' + error.message, 'error'); return; }
+    toast('Pengaturan berhasil disimpan', 'success');
   });
 }
 

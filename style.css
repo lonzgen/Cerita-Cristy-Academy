@@ -554,14 +554,23 @@ footer{background:var(--blue-dark);color:#fff;padding:64px 48px 36px}
 .empty-note{text-align:center;color:var(--ink-soft);font-size:14px;padding:30px;width:100%}
 .star-dim{opacity:.28}
 
-/* ---------- REVIEW CONTROLS (urutkan + filter) & area scroll ---------- */
-.rev-controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.rev-controls label{font-size:13px;font-weight:600;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
-.rev-controls select{padding:9px 14px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:13px;background:#fff;color:var(--ink);cursor:pointer}
-.rev-controls select:focus{outline:none;border-color:var(--blue)}
-.rev-shown{font-size:12px;color:var(--ink-soft);margin-left:auto}
-.rev-grid{max-height:580px;overflow-y:auto;padding-right:6px}
-.rev-grid::-webkit-scrollbar{width:8px}
-.rev-grid::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
-.rev-grid::-webkit-scrollbar-thumb:hover{background:var(--ink-soft)}
-@media(max-width:600px){.rev-shown{margin-left:0;width:100%}.rev-grid{max-height:none;overflow:visible}}
+/* ---------- REVIEW CONTROLS (pill modern) & area scroll ---------- */
+.rev-controls{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;margin-bottom:24px}
+.rev-group{display:flex;flex-direction:column;gap:9px}
+.rev-group-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft)}
+.rev-pills{display:flex;gap:8px;flex-wrap:wrap}
+.rev-pill{border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);padding:8px 16px;border-radius:100px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .22s cubic-bezier(.22,1,.36,1)}
+.rev-pill:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-1px)}
+.rev-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 10px 20px -10px rgba(28,92,154,.75)}
+.rev-pills.rating .rev-pill.active{background:var(--gold);border-color:var(--gold);color:var(--ink);box-shadow:0 10px 20px -10px rgba(255,204,0,.7)}
+.rev-shown{font-size:12px;color:var(--ink-soft);margin-left:auto;align-self:flex-end;padding-bottom:8px}
+.rev-grid{padding-right:2px}
+.rev-more-wrap{display:flex;justify-content:center;margin-top:24px}
+.rev-more{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--blue);border:1.5px solid var(--blue);padding:11px 28px;border-radius:100px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:all .22s cubic-bezier(.22,1,.36,1)}
+.rev-more:hover{background:var(--blue);color:#fff;transform:translateY(-2px);box-shadow:0 14px 26px -12px rgba(28,92,154,.75)}
+@media(max-width:600px){.rev-shown{margin-left:0;width:100%}}
+
+/* ---------- tanggal ulasan ---------- */
+.rc-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}
+.rc-foot .vbadge{margin:0}
+.rc-date{font-size:12px;color:var(--ink-soft);white-space:nowrap}

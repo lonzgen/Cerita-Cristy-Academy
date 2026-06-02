@@ -185,28 +185,31 @@
     </div>
 
     <div class="rev-controls">
-      <label>Urutkan
-        <select id="revSort">
-          <option value="newest">Terbaru</option>
-          <option value="oldest">Terlama</option>
-          <option value="highest">Rating Tertinggi</option>
-          <option value="lowest">Rating Terendah</option>
-        </select>
-      </label>
-      <label>Rating
-        <select id="revFilter">
-          <option value="0">Semua</option>
-          <option value="5">5 ★</option>
-          <option value="4">4 ★</option>
-          <option value="3">3 ★</option>
-          <option value="2">2 ★</option>
-          <option value="1">1 ★</option>
-        </select>
-      </label>
+      <div class="rev-group">
+        <span class="rev-group-label">Urutkan</span>
+        <div class="rev-pills" id="revSort">
+          <button class="rev-pill active" data-sort="newest">Terbaru</button>
+          <button class="rev-pill" data-sort="oldest">Terlama</button>
+          <button class="rev-pill" data-sort="highest">Rating Tertinggi</button>
+          <button class="rev-pill" data-sort="lowest">Rating Terendah</button>
+        </div>
+      </div>
+      <div class="rev-group">
+        <span class="rev-group-label">Filter Rating</span>
+        <div class="rev-pills rating" id="revFilter">
+          <button class="rev-pill active" data-rating="0">Semua</button>
+          <button class="rev-pill" data-rating="5">5 ★</button>
+          <button class="rev-pill" data-rating="4">4 ★</button>
+          <button class="rev-pill" data-rating="3">3 ★</button>
+          <button class="rev-pill" data-rating="2">2 ★</button>
+          <button class="rev-pill" data-rating="1">1 ★</button>
+        </div>
+      </div>
       <span class="rev-shown" id="revShown"></span>
     </div>
 
     <div class="rev-grid" id="reviewGrid"></div>
+    <div class="rev-more-wrap"><button class="rev-more" id="revMore" style="display:none">Muat lebih banyak</button></div>
 
     <!-- REVIEW FORM -->
     <div class="rform">
@@ -275,7 +278,7 @@
 <footer>
   <div class="foot-top">
     <div class="foot-brand">
-      <a class="brand" href="#"><img src="Photo/cca-logo.png" alt="CCA" class="brand-logo"/><span class="brand-name foot-name">Cerita Cristy <b>Academy</b></span></a>
+      <a class="brand" href="#"><img src="cca-logo.png" alt="CCA" class="brand-logo"/><span class="brand-name foot-name">Cerita Cristy <b>Academy</b></span></a>
       <p>Pusat pelatihan public speaking yang telah membantu 1.200+ profesional menemukan suara dan kepercayaan diri mereka.</p>
     </div>
     <div class="fcol"><h6>Menu</h6><a href="#about">Tentang</a><a href="#kelas">Kelas</a><a href="#jadwal">Jadwal</a><a href="#ulasan">Ulasan</a></div>
