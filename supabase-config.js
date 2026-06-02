@@ -1,10 +1,9 @@
 /* ============================================
    SUPABASE CONFIG — dipakai oleh script.js & admin.js
-   GANTI dua nilai di bawah dengan milik project Anda:
-   Supabase Dashboard > Project Settings > API
+   Project: cerita-cristy-academy (region Singapore)
    ============================================ */
-const SUPABASE_URL = "https://zhotzzixgjxgfmcplghh.supabase.co";  
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpob3R6eml4Z2p4Z2ZtY3BsZ2hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNzEzODksImV4cCI6MjA5NTk0NzM4OX0.0pe2sZyjpTeKVx5OKWB9-ISEVw3CC6fbCuIUIQQTcCY"; 
+const SUPABASE_URL = "https://blnudryukjdcdgduwuwp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsbnVkcnl1a2pkY2RnZHV3dXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTExNzAsImV4cCI6MjA5NTk2NzE3MH0.XYrdVVP3YHylZofTIZIP8JJf0XP8JU4ka1rR7_6jpYo";
 
 // Nomor WhatsApp Business (tanpa tanda + / spasi)
 const WA_NUMBER = "62895321540399";

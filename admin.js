@@ -8,6 +8,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let user = null, isAdmin = false, currentSec = 'reviews', editingId = null, activeFields = [];
+let authChecked = false; // cegah pengecekan login jalan ganda (hindari request dobel)
 
 /* ============================================
    SKEMA TIAP SECTION
@@ -99,12 +100,15 @@ function showApp() {
   selectSection('reviews');
 }
 async function checkAuth() {
+  if (authChecked) return;
+  authChecked = true;
   const { data } = await supabaseClient.auth.getSession();
   user = data.session?.user || null;
-  if (!user) return showLogin();
+  if (!user) { authChecked = false; return showLogin(); }
   const { data: rows, error } = await supabaseClient.from('admins').select('email').eq('email', user.email);
   isAdmin = !error && rows && rows.length > 0;
   if (!isAdmin) {
+    authChecked = false;
     showLogin('Akun ini belum terdaftar sebagai admin. Tambahkan email Anda di tabel "admins" (lihat panduan), lalu coba lagi.');
     return;
   }
@@ -120,7 +124,7 @@ $('loginBtn').addEventListener('click', async () => {
 $('logoutBtn').addEventListener('click', async () => { await supabaseClient.auth.signOut(); location.reload(); });
 supabaseClient.auth.onAuthStateChange((event) => {
   if (event === 'SIGNED_IN') checkAuth();
-  if (event === 'SIGNED_OUT') showLogin();
+  if (event === 'SIGNED_OUT') { authChecked = false; showLogin(); }
 });
 
 /* ============================================
@@ -153,7 +157,7 @@ async function renderList(sec) {
   if (!data.length) { $('list').innerHTML = '<div class="empty">Belum ada data. Klik "Tambah" untuk menambah.</div>'; return; }
   $('list').innerHTML = data.map(r => {
     const v = s.row(r);
-    const thumb = v.thumb ? `<img class="thumb" src="${esc(v.thumb)}" alt=""/>` : '';
+    const thumb = v.thumb ? `<img class="thumb" src="${esc(v.thumb)}" alt="" loading="lazy" decoding="async"/>` : '';
     const tags = (v.tags || []).map(t => `<span class="tag ${t[0]}">${esc(t[1])}</span>`).join('');
     return `<div class="item">${thumb}
       <div class="info"><h4>${tags}${esc(v.title)}</h4><p>${esc(v.desc || '')}</p></div>
@@ -213,7 +217,7 @@ function openModal(sec, row) {
       });
       url.addEventListener('input', () => { if (url.value) { prev.src = url.value; prev.style.display = 'block'; } });
       getValue = async () => {
-        if (file.files[0]) return await uploadImage(file.files[0], sec);
+        if (file.files[0]) return await uploadImage(await compressImage(file.files[0]), sec);
         return url.value.trim() || null;
       };
     } else {
@@ -261,6 +265,38 @@ async function uploadImage(file, folder) {
   const { error } = await supabaseClient.storage.from('media').upload(path, file, { upsert: false });
   if (error) throw error;
   return supabaseClient.storage.from('media').getPublicUrl(path).data.publicUrl;
+}
+
+/* Kompres & kecilkan gambar sebelum upload supaya ringan.
+   Foto besar (jpg) dikecilkan & dikompres; PNG (logo transparan) tetap PNG. */
+async function compressImage(file, maxDim = 1200, quality = 0.82) {
+  if (!file.type || !file.type.startsWith('image/')) return file;
+  if (file.size < 300 * 1024) return file; // sudah kecil, biarkan
+  try {
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = URL.createObjectURL(file);
+    });
+    let { width, height } = img;
+    if (Math.max(width, height) > maxDim) {
+      const scale = maxDim / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+    const isPng = file.type === 'image/png';
+    const blob = await new Promise(r => canvas.toBlob(r, isPng ? 'image/png' : 'image/jpeg', quality));
+    URL.revokeObjectURL(img.src);
+    if (!blob || blob.size >= file.size) return file; // tidak lebih kecil, pakai asli
+    const base = file.name.replace(/\.[^.]+$/, '');
+    return new File([blob], base + (isPng ? '.png' : '.jpg'), { type: blob.type });
+  } catch (_) {
+    return file; // kalau gagal kompres, upload file asli
+  }
 }
 
 /* ============================================

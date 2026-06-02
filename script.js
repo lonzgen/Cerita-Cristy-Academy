@@ -232,7 +232,7 @@ async function loadPartners() {
   const row = $('partnersRow');
   if (!data || !data.length) { row.innerHTML = ''; return; }
   row.innerHTML = data.map(p =>
-    `<img src="${esc(p.logo_url)}" alt="${esc(p.name)}" title="${esc(p.name)}" class="p-logo"/>`).join('');
+    `<img src="${esc(p.logo_url)}" alt="${esc(p.name)}" title="${esc(p.name)}" class="p-logo" loading="lazy" decoding="async"/>`).join('');
 }
 
 /* ============================================
@@ -335,7 +335,7 @@ async function loadGallery() {
   if (!data || !data.length) { grid.innerHTML = ''; return; }
   grid.innerHTML = data.map(g => `
     <div class="gal-item">
-      <div class="gal-ph" style="height:${g.height || 190}px"><img src="${esc(g.image_url)}" alt="${esc(g.title)}"></div>
+      <div class="gal-ph" style="height:${g.height || 190}px"><img src="${esc(g.image_url)}" alt="${esc(g.title)}" loading="lazy" decoding="async"></div>
       <div class="gal-cap"><b>${esc(g.title)}</b><span>${esc(g.caption || '')}</span></div>
     </div>`).join('');
 }
