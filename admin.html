@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M-Admin · Cerita Cristy Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --blue:#1C5C9A;--blue-deep:#14477A;--blue-dark:#0E3358;--blue-tint:#EAF1F8;
+  --gold:#FFCC00;--gold-deep:#E6B400;--ink:#16263A;--ink-soft:#5A6B7D;
+  --line:rgba(28,92,154,.16);--bg:#F4F8FC;--card:#fff;
+  --shadow:0 18px 40px -24px rgba(20,71,122,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Poppins',sans-serif;letter-spacing:-.02em}
+button{font-family:inherit;cursor:pointer}
+img{max-width:100%;display:block}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--card);border-radius:24px;padding:48px 40px;box-shadow:var(--shadow);text-align:center;max-width:420px;width:100%;border:1px solid var(--line)}
+.login-card .logo{font-family:'Poppins';font-weight:800;font-size:24px;color:var(--blue)}
+.login-card .logo b{color:var(--gold-deep)}
+.login-card p{color:var(--ink-soft);font-size:14px;margin:10px 0 28px}
+.gbtn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--ink);border:1px solid var(--line);padding:13px 24px;border-radius:100px;font-weight:600;font-size:14px;transition:transform .25s,box-shadow .25s}
+.gbtn:hover{transform:translateY(-2px);box-shadow:0 12px 26px -14px rgba(20,71,122,.5)}
+.err{color:#c0392b;font-size:13px;margin-top:16px}
+
+/* APP LAYOUT */
+.app{display:none;min-height:100vh;grid-template-columns:240px 1fr}
+.sidebar{background:var(--blue-dark);color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.sidebar .brand{font-family:'Poppins';font-weight:800;font-size:18px;padding:8px 12px 20px}
+.sidebar .brand b{color:var(--gold)}
+.navbtn{display:flex;align-items:center;gap:10px;background:transparent;border:none;color:rgba(255,255,255,.78);padding:12px 14px;border-radius:12px;text-align:left;font-size:14px;font-weight:600;transition:background .2s,color .2s}
+.navbtn:hover{background:rgba(255,255,255,.08);color:#fff}
+.navbtn.active{background:var(--gold);color:var(--ink)}
+.sidebar .spacer{flex:1}
+.sidebar .who{font-size:12px;color:rgba(255,255,255,.6);padding:8px 14px;word-break:break-all}
+.logout{background:rgba(255,255,255,.1);border:none;color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600}
+
+.main{padding:32px 36px;overflow-x:hidden}
+.main-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.main-head h2{font-size:24px}
+.main-head .sub{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.btn-add{background:var(--blue);color:#fff;border:none;padding:11px 20px;border-radius:100px;font-weight:600;font-size:14px}
+.btn-add:hover{background:var(--blue-deep)}
+
+/* LIST */
+.list{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 8px 24px -20px rgba(20,71,122,.4)}
+.item .thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;background:var(--blue-tint);flex-shrink:0}
+.item .info{flex:1;min-width:0}
+.item .info h4{font-size:15px;margin-bottom:3px}
+.item .info p{font-size:13px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis}
+.item .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;margin-right:6px}
+.tag.ok{background:#e6f6ec;color:#1e8e4e}.tag.pend{background:#fff3d6;color:#b8860b}.tag.hot{background:#ffe3e3;color:#c0392b}
+.item .acts{display:flex;gap:8px;flex-shrink:0}
+.mini{border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink)}
+.mini:hover{border-color:var(--blue);color:var(--blue)}
+.mini.danger:hover{border-color:#c0392b;color:#c0392b}
+.mini.go{background:var(--blue);color:#fff;border-color:var(--blue)}
+.empty{color:var(--ink-soft);font-size:14px;padding:40px;text-align:center;background:var(--card);border-radius:14px;border:1px dashed var(--line)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(14,51,88,.45);backdrop-filter:blur(3px);z-index:50;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:28px;max-width:560px;width:100%;box-shadow:var(--shadow)}
+.modal h3{font-size:20px;margin-bottom:20px}
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.fld input[type=text],.fld input[type=number],.fld input[type=date],.fld input[type=url],.fld textarea,.fld select{
+  width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:#fff}
+.fld textarea{min-height:80px;resize:vertical}
+.fld .hint{font-size:11px;color:var(--ink-soft);margin-top:4px}
+.fld.check{display:flex;align-items:center;gap:8px}
+.fld.check input{width:18px;height:18px}
+.fld.check label{margin:0}
+.preview{width:90px;height:90px;border-radius:10px;object-fit:cover;border:1px solid var(--line);margin-top:8px;display:none}
+.modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.modal-acts .save{background:var(--blue);color:#fff;border:none;padding:11px 24px;border-radius:100px;font-weight:600}
+.modal-acts .cancel{background:#fff;border:1px solid var(--line);padding:11px 22px;border-radius:100px;font-weight:600;color:var(--ink-soft)}
+
+@media(max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}
+  .sidebar .brand{width:100%;padding:6px 8px 12px}
+  .sidebar .spacer{display:none}.sidebar .who{display:none}
+  .main{padding:22px 18px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">Cerita Cristy <b>Academy</b></div>
+    <p>Panel Admin · Masuk dengan akun Google yang terdaftar sebagai admin.</p>
+    <button class="gbtn" id="loginBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.4 0-11.5-5.1-11.5-11.5S17.6 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10 0 18.5-7.3 18.5-19 0-1.3-.1-2.7-.9-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 16.3 4.5 9.7 8.9 6.3 14.7z"/><path fill="#4CAF50" d="M24 43.5c5.2 0 9.6-1.7 13-4.7l-6-5.1c-1.9 1.4-4.3 2.3-7 2.3-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.6 39.1 16.2 43.5 24 43.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6 5.1c-.4.4 6.3-4.6 6.3-14.5 0-1.3-.1-2.7-.9-3.5z"/></svg>
+      Login dengan Google
+    </button>
+    <p class="err" id="loginErr" style="display:none"></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="brand">CCA <b>Admin</b></div>
+    <button class="navbtn active" data-sec="reviews">⭐ Ulasan</button>
+    <button class="navbtn" data-sec="classes">🎓 Kelas &amp; Jadwal</button>
+    <button class="navbtn" data-sec="partners">🤝 Partner / Logo</button>
+    <button class="navbtn" data-sec="showreel">🎬 Showreel</button>
+    <button class="navbtn" data-sec="alumni">🗣️ Suara Alumni</button>
+    <button class="navbtn" data-sec="gallery">📸 Momen After Class</button>
+    <button class="navbtn" data-sec="settings">⚙️ Pengaturan</button>
+    <div class="spacer"></div>
+    <div class="who" id="who"></div>
+    <button class="logout" id="logoutBtn">Keluar</button>
+  </aside>
+  <main class="main">
+    <div class="main-head">
+      <div><h2 id="secTitle">Ulasan</h2><div class="sub" id="secSub"></div></div>
+      <button class="btn-add" id="addBtn" style="display:none">+ Tambah</button>
+    </div>
+    <div class="list" id="list"><div class="empty">Memuat…</div></div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Tambah</h3>
+    <div id="modalFields"></div>
+    <div class="modal-acts">
+      <button class="cancel" id="modalCancel">Batal</button>
+      <button class="save" id="modalSave">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
