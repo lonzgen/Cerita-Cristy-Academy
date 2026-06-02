@@ -9,6 +9,7 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const MONTHS_ID_FULL = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 function initials(name) {
   return (name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
 }
@@ -246,7 +247,11 @@ function renderReviewGrid(reset) {
   const more = $('revMore');
 
   if (!allReviews.length) {
-    grid.innerHTML = '<p class="empty-note">Jadilah yang pertama memberi ulasan!</p>';
+    grid.innerHTML = `<div class="rev-empty">
+      <div class="rev-empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg></div>
+      <h4>Mulai ceritanya dari kamu</h4>
+      <p>Jadilah yang pertama berbagi pengalaman. Satu cerita bisa menginspirasi banyak orang.</p>
+    </div>`;
     if (shown) shown.textContent = '';
     if (more) more.style.display = 'none';
     return;
@@ -254,7 +259,11 @@ function renderReviewGrid(reset) {
 
   const list = getFilteredSortedReviews();
   if (!list.length) {
-    grid.innerHTML = '<p class="empty-note">Belum ada ulasan dengan rating tersebut.</p>';
+    grid.innerHTML = `<div class="rev-empty">
+      <div class="rev-empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 17.3l-6.2 3.7 1.6-7.1L2 9.2l7.2-.6L12 2l2.8 6.6 7.2.6-5.4 4.7 1.6 7.1z"/></svg></div>
+      <h4>Belum ada cerita di rating ini</h4>
+      <p>Coba geser ke rating lain untuk melihat ulasan lainnya.</p>
+    </div>`;
     if (shown) shown.textContent = `0 dari ${allReviews.length} ulasan`;
     if (more) more.style.display = 'none';
     return;
@@ -262,13 +271,21 @@ function renderReviewGrid(reset) {
 
   const slice = list.slice(0, revShownCount);
   grid.innerHTML = slice.map(r => {
-    const dt = r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    const d = r.created_at ? new Date(r.created_at) : null;
+    const dt = (d && !isNaN(d)) ? `${d.getDate()} ${MONTHS_ID_FULL[d.getMonth()]} ${d.getFullYear()}` : '';
     return `
     <div class="rc">
-      <div class="rc-h"><div class="av">${initials(r.name)}</div><div><h5>${esc(r.name)}</h5><small>${esc(r.kelas || '')}</small></div></div>
+      <div class="rc-h">
+        <div class="av">${initials(r.name)}</div>
+        <div class="rc-id">
+          <h5>${esc(r.name)}</h5>
+          <small>${esc(r.kelas || '')}</small>
+          <span class="rc-date">${dt}</span>
+        </div>
+      </div>
       <div class="rc-stars">${starString(r.rating)}</div>
       <p>${esc(r.body)}</p>
-      <div class="rc-foot"><span class="vbadge">Peserta Terverifikasi</span><span class="rc-date">${dt}</span></div>
+      <div class="vbadge">Peserta Terverifikasi</div>
     </div>`;
   }).join('');
 

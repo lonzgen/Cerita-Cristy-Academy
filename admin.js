@@ -6,6 +6,9 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const fmtDate = (ts) => { if (!ts) return ''; const d = new Date(ts); return isNaN(d) ? '' : `${d.getDate()} ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`; };
+let admRevSearch = '', admRevFilter = 0;
 
 let user = null, isAdmin = false, currentSec = 'reviews', editingId = null, activeFields = [];
 
@@ -324,19 +327,45 @@ async function renderReviews() {
   $('list').innerHTML = '<div class="empty">Memuat…</div>';
   const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
   if (error) { $('list').innerHTML = `<div class="empty">Gagal memuat: ${esc(error.message)}</div>`; return; }
-  if (!data.length) { $('list').innerHTML = '<div class="empty">Belum ada ulasan.</div>'; return; }
-  window._reviewsCache = data;
-  $('list').innerHTML = data.map(r => {
+  window._reviewsCache = data || [];
+  const ratings = [0, 5, 4, 3, 2, 1];
+  $('list').innerHTML = `
+    <div class="rev-admin-controls">
+      <input type="text" id="revSearch" placeholder="Cari nama atau isi ulasan..." value="${esc(admRevSearch)}"/>
+      <div class="rev-admin-filter" id="revAdminFilter">
+        ${ratings.map(n => `<button class="af-pill${admRevFilter === n ? ' active' : ''}" data-r="${n}">${n === 0 ? 'Semua' : n + '★'}</button>`).join('')}
+      </div>
+    </div>
+    <div id="revAdminList"></div>`;
+  const search = $('revSearch');
+  search.addEventListener('input', () => { admRevSearch = search.value; renderReviewList(); });
+  $('revAdminFilter').addEventListener('click', e => {
+    const b = e.target.closest('[data-r]'); if (!b) return;
+    admRevFilter = +b.dataset.r;
+    $('revAdminFilter').querySelectorAll('.af-pill').forEach(p => p.classList.toggle('active', p === b));
+    renderReviewList();
+  });
+  renderReviewList();
+}
+
+function renderReviewList() {
+  const box = $('revAdminList');
+  if (!box) return;
+  const q = admRevSearch.trim().toLowerCase();
+  let list = (window._reviewsCache || []);
+  if (admRevFilter) list = list.filter(r => r.rating === admRevFilter);
+  if (q) list = list.filter(r => (r.name || '').toLowerCase().includes(q) || (r.body || '').toLowerCase().includes(q));
+  if (!list.length) { box.innerHTML = '<div class="empty">Tidak ada ulasan yang cocok.</div>'; return; }
+  box.innerHTML = list.map(r => {
     const tag = r.verified ? '<span class="tag ok">Tampil</span>' : '<span class="tag pend">Menunggu</span>';
     const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
-    const dt = r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     const toggle = r.verified
       ? `<button class="mini" onclick="setVerify('${r.id}',false)">Sembunyikan</button>`
       : `<button class="mini go" onclick="setVerify('${r.id}',true)">Setujui</button>`;
     return `<div class="item"><div class="info">
         <h4>${tag}${esc(r.name)} <span style="color:var(--gold-deep)">${stars}</span></h4>
         <p><b>${esc(r.kelas || '')}</b> — ${esc(r.body)}</p>
-        <p style="font-size:12px;color:var(--ink-soft);margin-top:4px">🗓️ ${dt}</p>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:4px">🗓️ ${fmtDate(r.created_at)}</p>
       </div><div class="acts">${toggle}
         <button class="mini" onclick="editReview('${r.id}')">Edit</button>
         <button class="mini danger" onclick="deleteReview('${r.id}')">Hapus</button>
