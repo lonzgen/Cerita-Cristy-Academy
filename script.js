@@ -140,12 +140,12 @@ supabaseClient.auth.onAuthStateChange(() => refreshAuthUI());
 
 /* SUBMIT REVIEW -> Supabase (pending verifikasi admin) */
 $('sendReview')?.addEventListener('click', async () => {
-  if (!currentUser) { alert('Silakan login dengan Google terlebih dahulu 😊'); return; }
+  if (!currentUser) { toast('Silakan login dengan Google dulu untuk menulis ulasan', 'info'); return; }
   const n = $('rn').value.trim();
   const k = $('rk').value;
   const t = $('rt').value.trim();
   if (!n || !k || !t || !rating) {
-    alert('Mohon lengkapi semua field dan berikan rating bintang 😊');
+    toast('Mohon lengkapi semua kolom dan beri rating bintang', 'info');
     return;
   }
   const meta = currentUser.user_metadata || {};
@@ -158,8 +158,8 @@ $('sendReview')?.addEventListener('click', async () => {
     verified: false
   });
   btn.disabled = false; btn.textContent = 'Kirim Ulasan';
-  if (error) { alert('Gagal mengirim ulasan: ' + error.message); return; }
-  alert('Terima kasih! Ulasanmu terkirim dan akan tampil setelah diverifikasi admin ✅');
+  if (error) { toast('Gagal mengirim ulasan: ' + error.message, 'error'); return; }
+  toast('Terima kasih! Ulasanmu terkirim dan akan tampil setelah diverifikasi admin.', 'success');
   $('rt').value = ''; $('cc').textContent = '0 / 300 karakter';
   rating = 0; sbs.forEach(s => s.classList.remove('on'));
   plabel.textContent = 'Tap bintang untuk memberi rating';
@@ -181,11 +181,13 @@ async function loadSettings() {
 /* ============================================
    RENDER: REVIEWS (summary + grid + hero rating)
    ============================================ */
+let allReviews = [];
 async function loadReviews() {
   const { data: reviews } = await supabaseClient
     .from('reviews').select('*').eq('verified', true)
     .order('created_at', { ascending: false });
   const list = reviews || [];
+  allReviews = list;
   const total = list.length;
   const avg = total ? (list.reduce((a, r) => a + r.rating, 0) / total) : 0;
   const avgTxt = total ? avg.toFixed(1) : '—';
@@ -212,10 +214,42 @@ async function loadReviews() {
   // animasikan lebar bar
   setTimeout(() => bars.querySelectorAll('.fl').forEach(f => f.style.width = f.dataset.w + '%'), 120);
 
-  // grid (tampilkan maks 6 terbaru)
+  // grid dengan urutan & filter (lihat renderReviewGrid)
+  renderReviewGrid();
+}
+
+/* Render daftar ulasan sesuai pilihan Urutkan & Filter rating.
+   Ringkasan (rata-rata & grafik) tetap dari SEMUA ulasan, tidak terpengaruh filter. */
+function renderReviewGrid() {
   const grid = $('reviewGrid');
-  if (!total) { grid.innerHTML = '<p class="empty-note">Jadilah yang pertama memberi ulasan!</p>'; return; }
-  grid.innerHTML = list.slice(0, 6).map(r => `
+  if (!grid) return;
+  const shown = $('revShown');
+  const sort = $('revSort')?.value || 'newest';
+  const filter = +($('revFilter')?.value || 0);
+
+  if (!allReviews.length) {
+    grid.innerHTML = '<p class="empty-note">Jadilah yang pertama memberi ulasan!</p>';
+    if (shown) shown.textContent = '';
+    return;
+  }
+
+  let list = allReviews.slice();
+  if (filter) list = list.filter(r => r.rating === filter);
+  list.sort((a, b) => {
+    const da = new Date(a.created_at), db = new Date(b.created_at);
+    if (sort === 'newest') return db - da;
+    if (sort === 'oldest') return da - db;
+    if (sort === 'highest') return b.rating - a.rating || (db - da);
+    if (sort === 'lowest') return a.rating - b.rating || (db - da);
+    return 0;
+  });
+
+  if (shown) shown.textContent = `Menampilkan ${list.length} dari ${allReviews.length} ulasan`;
+  if (!list.length) {
+    grid.innerHTML = '<p class="empty-note">Belum ada ulasan dengan rating tersebut.</p>';
+    return;
+  }
+  grid.innerHTML = list.map(r => `
     <div class="rc">
       <div class="rc-h"><div class="av">${initials(r.name)}</div><div><h5>${esc(r.name)}</h5><small>${esc(r.kelas || '')}</small></div></div>
       <div class="rc-stars">${starString(r.rating)}</div>
@@ -223,6 +257,8 @@ async function loadReviews() {
       <div class="vbadge">Peserta Terverifikasi</div>
     </div>`).join('');
 }
+$('revSort')?.addEventListener('change', renderReviewGrid);
+$('revFilter')?.addEventListener('change', renderReviewGrid);
 
 /* ============================================
    RENDER: PARTNERS (logo)

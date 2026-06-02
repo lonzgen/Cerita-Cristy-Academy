@@ -553,3 +553,15 @@ footer{background:var(--blue-dark);color:#fff;padding:64px 48px 36px}
 #reviewFields[disabled]{opacity:.45;pointer-events:none}
 .empty-note{text-align:center;color:var(--ink-soft);font-size:14px;padding:30px;width:100%}
 .star-dim{opacity:.28}
+
+/* ---------- REVIEW CONTROLS (urutkan + filter) & area scroll ---------- */
+.rev-controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.rev-controls label{font-size:13px;font-weight:600;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
+.rev-controls select{padding:9px 14px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:13px;background:#fff;color:var(--ink);cursor:pointer}
+.rev-controls select:focus{outline:none;border-color:var(--blue)}
+.rev-shown{font-size:12px;color:var(--ink-soft);margin-left:auto}
+.rev-grid{max-height:580px;overflow-y:auto;padding-right:6px}
+.rev-grid::-webkit-scrollbar{width:8px}
+.rev-grid::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.rev-grid::-webkit-scrollbar-thumb:hover{background:var(--ink-soft)}
+@media(max-width:600px){.rev-shown{margin-left:0;width:100%}.rev-grid{max-height:none;overflow:visible}}

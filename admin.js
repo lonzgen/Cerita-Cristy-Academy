@@ -14,6 +14,15 @@ let authChecked = false; // cegah pengecekan login jalan ganda (hindari request 
    SKEMA TIAP SECTION
    ============================================ */
 const SCHEMAS = {
+  reviews: {
+    table: 'reviews', title: 'Ulasan',
+    fields: [
+      { k: 'name', l: 'Nama', t: 'text' },
+      { k: 'kelas', l: 'Kelas yang diikuti', t: 'text' },
+      { k: 'rating', l: 'Rating', t: 'number', h: 'Isi 1 sampai 5' },
+      { k: 'body', l: 'Isi ulasan', t: 'textarea' },
+    ],
+  },
   classes: {
     table: 'classes', title: 'Kelas & Jadwal', addLabel: '+ Tambah Kelas',
     sub: 'Kelas dengan tanggal di BULAN INI tampil di "Pilih Kelasmu". Bulan depan & seterusnya tampil di "Jadwal Mendatang" (maks 3).',
@@ -248,7 +257,7 @@ $('modalSave').addEventListener('click', async () => {
     else res = await supabaseClient.from(s.table).insert(payload);
     if (res.error) throw res.error;
     $('modalBg').classList.remove('show');
-    renderList(currentSec);
+    if (currentSec === 'reviews') renderReviews(); else renderList(currentSec);
   } catch (err) {
     alert('Gagal menyimpan: ' + err.message);
   } finally {
@@ -307,6 +316,7 @@ async function renderReviews() {
   const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
   if (error) { $('list').innerHTML = `<div class="empty">Gagal memuat: ${esc(error.message)}</div>`; return; }
   if (!data.length) { $('list').innerHTML = '<div class="empty">Belum ada ulasan.</div>'; return; }
+  window._reviewsCache = data;
   $('list').innerHTML = data.map(r => {
     const tag = r.verified ? '<span class="tag ok">Tampil</span>' : '<span class="tag pend">Menunggu</span>';
     const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
@@ -317,10 +327,15 @@ async function renderReviews() {
         <h4>${tag}${esc(r.name)} <span style="color:var(--gold-deep)">${stars}</span></h4>
         <p><b>${esc(r.kelas || '')}</b> — ${esc(r.body)}</p>
       </div><div class="acts">${toggle}
+        <button class="mini" onclick="editReview('${r.id}')">Edit</button>
         <button class="mini danger" onclick="deleteReview('${r.id}')">Hapus</button>
       </div></div>`;
   }).join('');
 }
+window.editReview = (id) => {
+  const row = (window._reviewsCache || []).find(x => x.id === id);
+  if (row) openModal('reviews', row);
+};
 window.setVerify = async (id, val) => {
   const { error } = await supabaseClient.from('reviews').update({ verified: val }).eq('id', id);
   if (error) { alert('Gagal: ' + error.message); return; }

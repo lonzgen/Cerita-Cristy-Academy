@@ -184,6 +184,28 @@
       <div class="bars" id="revBars"></div>
     </div>
 
+    <div class="rev-controls">
+      <label>Urutkan
+        <select id="revSort">
+          <option value="newest">Terbaru</option>
+          <option value="oldest">Terlama</option>
+          <option value="highest">Rating Tertinggi</option>
+          <option value="lowest">Rating Terendah</option>
+        </select>
+      </label>
+      <label>Rating
+        <select id="revFilter">
+          <option value="0">Semua</option>
+          <option value="5">5 ★</option>
+          <option value="4">4 ★</option>
+          <option value="3">3 ★</option>
+          <option value="2">2 ★</option>
+          <option value="1">1 ★</option>
+        </select>
+      </label>
+      <span class="rev-shown" id="revShown"></span>
+    </div>
+
     <div class="rev-grid" id="reviewGrid"></div>
 
     <!-- REVIEW FORM -->
@@ -272,6 +294,7 @@
 </a>
 
 <script src="supabase-config.js"></script>
+<script src="notify.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
